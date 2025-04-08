@@ -1,31 +1,32 @@
-// Posição do jogador
+// Posição horizontal do jogador e posição vertical inicial para o pulo
 let velocidade = 50;
 let pular = 450;
 
-// Gravidade e pulo
+// Variáveis de física: velocidade vertical, gravidade, força do pulo e verificação se está no chão
 let velY = 0;
 let gravidade = 1.1;
 let pulo = -12;
 let noChao = false;
 
-// Lista de plataformas e controle de velocidade
+// Array para armazenar as plataformas, velocidade do jogo e quanto ela vai aumentando com o tempo
 let plataformas = [];
 let velocidadeJogo = 3;
 let aumentoVelocidade = 0.001;
 
-// Pontuação do jogador
+// Pontuação atual e recorde
 let pontos = 0;
-let maiorPontuacao = 0
+let maiorPontuacao = 0;
 
-// Controle de estado do jogo
+// Estado do jogo: se está rolando ou acabou
 let jogoAtivo = true;
 
 function setup() {
-  createCanvas(700, 500);
-  plataformas.push({ x: 0, largura: width });
+  createCanvas(700, 500)
+  plataformas.push({ x: 0, largura: width }); // Adiciona a primeira plataforma inicial ocupando toda a largura
 }
 
 function draw() {
+  // Se o jogo acabou, mostra a tela de Game Over e não executa o resto do jogo
   if (!jogoAtivo) {
     background("#2E2E2E");
     fill("rgb(255,255,255)");
@@ -33,33 +34,41 @@ function draw() {
     text("Game Over", 280, 250);
     textSize(18);
     text("Pressione espaço para reiniciar", 230, 280);
+    
+    // Atualiza a maior pontuação se a pontuação atual for maior
     if (maiorPontuacao < pontos){
-      maiorPontuacao = pontos
+      maiorPontuacao = pontos;
     }
+
     return;
   }
 
+  // Desenha o fundo e elementos visuais
   drawBackground();
   desenharMontanhas();
   desenharNuvens();
   desenharSol();
 
+  // Aplica a gravidade ao jogador
   velY += gravidade;
   pular += velY;
 
+  // Desenha a terra
   fill("brown");
   rect(0, 480, 700, 30);
 
+  // Atualiza e desenha todas as plataformas
   fill("#8AC149");
   for (let i = plataformas.length - 1; i >= 0; i--) {
     let plat = plataformas[i];
-    plat.x -= velocidadeJogo;
-    rect(plat.x, 480, plat.largura, 20);
+    plat.x -= velocidadeJogo; // Move a plataforma para esquerda
+    rect(plat.x, 480, plat.largura, 20); // Desenha a plataforma
     if (plat.x + plat.largura < 0) {
-      plataformas.splice(i, 1);
+      plataformas.splice(i, 1); // Remove a plataforma que saiu da tela
     }
   }
 
+  // Verifica se o jogador está em cima da plataforma
   let sobrePlataforma = false;
   for (let plat of plataformas) {
     if (
@@ -73,31 +82,36 @@ function draw() {
     }
   }
 
+  // Se estiver sobre uma plataforma, reseta a posição de pulo e a velocidade vertical
   if (sobrePlataforma) {
     pular = 450;
     velY = 0;
     noChao = true;
   } else if (pular > height) {
+    // Se caiu fora da tela, termina o jogo
     console.log("E morreu");
     jogoAtivo = false;
   } else {
     noChao = false;
   }
 
+  // Desenha o jogador
   desenharJogador(velocidade, pular);
 
+  // Gera novas plataformas conforme o boneco avança
   let ultimaX = plataformas.length > 0
     ? plataformas[plataformas.length - 1].x + plataformas[plataformas.length - 1].largura
     : 0;
 
   while (ultimaX < width + 200) {
-    let buraco = random(20 + velocidadeJogo * 7, 50 + velocidadeJogo * 10);
-    let plataforma = random(110 + velocidadeJogo * 20, 210 + velocidadeJogo * 40);
+    let buraco = random(20 + velocidadeJogo * 7, 50 + velocidadeJogo * 10); // Espaço entre plataformas
+    let plataforma = random(110 + velocidadeJogo * 20, 210 + velocidadeJogo * 40); // Largura da nova plataforma
     ultimaX += buraco;
     plataformas.push({ x: ultimaX, largura: plataforma });
     ultimaX += plataforma;
   }
 
+  // controla a velocidade do jogo
   if (velocidadeJogo < 35) {
     if (velocidadeJogo < 20) {
       velocidadeJogo += aumentoVelocidade;
@@ -108,15 +122,16 @@ function draw() {
     }
   }
 
+  // Atualiza e exibe a pontuação
   pontos += 1;
   fill(255);
   textSize(20);
   text("Pontuação: " + pontos, 10, 30);
-  text("Maior Pontuação: " + maiorPontuacao, 10, 50)
-  
+  text("Maior Pontuação: " + maiorPontuacao, 10, 50);
 }
 
 function keyPressed() {
+  // Faz o jogador pular se estiver no chão e o jogo estiver ativo
   if (keyCode === 32 && noChao && jogoAtivo) {
     velY = pulo;
     noChao = false;
@@ -127,7 +142,7 @@ function keyPressed() {
   }
 }
 
-// Função para reiniciar o jogo
+// função que reinicia o jogo
 function reiniciarJogo() {
   plataformas = [{ x: 0, largura: width }];
   pular = 450;
@@ -137,8 +152,9 @@ function reiniciarJogo() {
   jogoAtivo = true;
 }
 
-// ----- VISUAIS -----
+// ----- ELEMENTOS VISUAIS -----
 
+// Céu
 function drawBackground() {
   for (let y = 0; y < height; y++) {
     let c = lerpColor(color(0, 126, 255), color(135, 206, 250), y / height);
@@ -148,6 +164,7 @@ function drawBackground() {
   noStroke();
 }
 
+// Montanhas
 function desenharMontanhas() {
   fill(80, 130, 100);
   triangle(100, 480, 300, 200, 500, 480);
@@ -159,6 +176,7 @@ function desenharMontanhas() {
   triangle(566, 290, 600, 250, 636, 290);
 }
 
+// Nuvens
 function desenharNuvens() {
   fill("white");
   noStroke();
@@ -170,15 +188,17 @@ function desenharNuvens() {
   ellipse(520, 50, 80, 40);
 }
 
+// Sol amarelo no canto
 function desenharSol() {
   fill("yellow");
   noStroke();
   ellipse(680, 30, 80, 80);
 }
 
+// O bonequinho azul do jogador
 function desenharJogador(x, y) {
   fill("blue");
-  rect(x, y, 30, 30, 5);
+  rect(x, y, 30, 30, 5); // Corpo
   fill("white");
-  ellipse(x + 22, y + 10, 5, 5);
+  ellipse(x + 22, y + 10, 5, 5); // Olhinho
 }
